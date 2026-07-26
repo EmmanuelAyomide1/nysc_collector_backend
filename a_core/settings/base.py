@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     "apps.common",
     "apps.users",
     "apps.authentication",
+    "apps.members",
 ]
 
 MIDDLEWARE = [
