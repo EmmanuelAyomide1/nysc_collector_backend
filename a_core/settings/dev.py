@@ -17,6 +17,7 @@ MIDDLEWARE = [
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+    "https://nonmetrical-pokingly-gabriele.ngrok-free.dev",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -30,6 +31,11 @@ CORS_ALLOW_CREDENTIALS = True
 DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
 
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+
+
+# PAYSTACK CONFIG
+PAYSTACK_SECRET_KEY = config("PAYSTACK_TEST_SECRET_KEY")
+PAYSTACK_PUBLIC_KEY = config("PAYSTACK_TEST_PUBLIC_KEY")
 
 
 # LOGGING CONFIGURATION (local dev overrides)
