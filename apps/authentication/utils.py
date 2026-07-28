@@ -19,7 +19,7 @@ def set_auth_cookies(response, access_token, refresh_token=None):
         access_token,
         httponly=True,
         secure=not settings.DEBUG,
-        samesite="Lax",
+        samesite="None",
     )
     if refresh_token is not None:
         response.set_cookie(
@@ -27,6 +27,6 @@ def set_auth_cookies(response, access_token, refresh_token=None):
             refresh_token,
             httponly=True,
             secure=not settings.DEBUG,
-            samesite="Lax",
+            samesite="None",
         )
     return response
