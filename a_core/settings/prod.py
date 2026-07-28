@@ -6,6 +6,8 @@ ALLOWED_HOSTS = ["render.com", ".onrender.com"]
 
 
 # CORS CONFIGURATION
+CORS_ALLOW_CREDENTIALS = True
+
 CORS_ALLOWED_ORIGINS = [
     "https://nysc-ibn2.vercel.app",
     "https://www.nysc-ibn2.vercel.app",
