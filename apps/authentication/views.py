@@ -71,6 +71,9 @@ class LoginView(APIView):
     decorator=swagger_auto_schema(tags=["Authentication"]),
 )
 class LogoutView(APIView):
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
     def post(self, request):
         refresh_token = request.COOKIES.get(REFRESH_TOKEN_COOKIE_NAME)
         if refresh_token:
