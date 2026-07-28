@@ -1,2 +1,4 @@
 ACCESS_TOKEN_COOKIE_NAME = "access_token"
 REFRESH_TOKEN_COOKIE_NAME = "refresh_token"
+
+PAYSTACK_BASE_URL = "https://api.paystack.co"

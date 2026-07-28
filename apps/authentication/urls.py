@@ -1,4 +1,4 @@
-from django.urls import include, path
+from django.urls import path
 
 from apps.authentication.views import (
     LoginView,
@@ -14,5 +14,4 @@ urlpatterns = [
     path("login/", LoginView.as_view(), name="login"),
     path("logout/", LogoutView.as_view(), name="logout"),
     path("refresh/", RefreshView.as_view(), name="refresh"),
-    path("users/", include("apps.users.urls")),
 ]

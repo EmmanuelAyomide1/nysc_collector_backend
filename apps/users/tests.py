@@ -6,7 +6,7 @@ User = get_user_model()
 
 
 class CurrentUserViewTests(APITestCase):
-    url = "/api/auth/users/me/"
+    url = "/api/users/me/"
 
     def setUp(self):
         self.user = User.objects.create_user(
