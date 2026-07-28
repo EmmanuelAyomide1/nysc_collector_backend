@@ -2,15 +2,24 @@ from .base import *  # noqa: F403,F401
 
 DEBUG = config("DEBUG", cast=bool)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["render.com", ".onrender.com"]
 
 
 # CORS CONFIGURATION
-CORS_ALLOWED_ORIGINS = []
+CORS_ALLOWED_ORIGINS = [
+    "https://nysc-ibn2.vercel.app",
+    "https://www.nysc-ibn2.vercel.app",
+]
 
-CORS_ORIGIN_WHITELIST = ()
+CORS_ORIGIN_WHITELIST = (
+    "https://nysc-ibn2.vercel.app",
+    "https://www.nysc-ibn2.vercel.app",
+)
 
-CSRF_TRUSTED_ORIGINS = []
+CSRF_TRUSTED_ORIGINS = [
+    "https://nysc-ibn2.vercel.app",
+    "https://www.nysc-ibn2.vercel.app",
+]
 
 
 INSTALLED_APPS += [
