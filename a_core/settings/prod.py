@@ -2,7 +2,12 @@ from .base import *  # noqa: F403,F401
 
 DEBUG = config("DEBUG", cast=bool)
 
-ALLOWED_HOSTS = ["render.com", ".onrender.com"]
+ALLOWED_HOSTS = [
+    "render.com",
+    ".onrender.com",
+    "nysc-ibn2.vercel.app",
+    "www.nysc-ibn2.vercel.app",
+]
 
 
 # CORS CONFIGURATION
