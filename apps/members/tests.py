@@ -64,6 +64,66 @@ class MemberListViewTests(MemberTestsBase):
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
+    def test_admin_can_search_by_name(self):
+        self.login(self.admin.email)
+
+        response = self.client.get(self.list_url, {"search": "Okafor"})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        results = response.data["data"]["results"]
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0]["email"], self.member.email)
+
+    def test_admin_can_search_by_email(self):
+        self.login(self.admin.email)
+
+        response = self.client.get(self.list_url, {"search": "other@example.com"})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        results = response.data["data"]["results"]
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0]["email"], self.other_member.email)
+
+    def test_admin_can_filter_by_role(self):
+        self.login(self.admin.email)
+
+        response = self.client.get(self.list_url, {"role": "admin"})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        results = response.data["data"]["results"]
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0]["email"], self.admin.email)
+
+    def test_admin_can_filter_by_is_active(self):
+        self.other_member.is_active = False
+        self.other_member.save(update_fields=["is_active"])
+        self.login(self.admin.email)
+
+        response = self.client.get(self.list_url, {"is_active": "false"})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        results = response.data["data"]["results"]
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0]["email"], self.other_member.email)
+
+    def test_admin_can_filter_by_batch(self):
+        User.objects.create_user(
+            email="batchb@example.com",
+            password="S0me-Str0ng-Pass!",
+            batch="B1",
+            code_no=4,
+            first_name="Dara",
+            last_name="Obi",
+        )
+        self.login(self.admin.email)
+
+        response = self.client.get(self.list_url, {"batch": "B1"})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        results = response.data["data"]["results"]
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0]["email"], "batchb@example.com")
+
 
 class MemberDetailViewTests(MemberTestsBase):
     def url(self, member):

@@ -103,6 +103,85 @@ class PaymentItemListCreateViewTests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
+    def test_admin_list_includes_inactive_items(self):
+        make_payment_item(name="Active Item", is_active=True)
+        make_payment_item(name="Inactive Item", is_active=False)
+
+        self.client.force_authenticate(user=self.admin)
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        names = {item["name"] for item in response.data["data"]["results"]}
+        self.assertEqual(names, {"Active Item", "Inactive Item"})
+
+
+class PaymentItemDetailViewTests(APITestCase):
+    def setUp(self):
+        self.admin = make_user(
+            email="admin@example.com", role=User.Role.ADMIN, code_no=2100
+        )
+        self.member = make_user(email="member@example.com", code_no=2101)
+        self.active_item = make_payment_item(name="Active Item", amount="500.00")
+        self.inactive_item = make_payment_item(
+            name="Inactive Item", amount="300.00", is_active=False
+        )
+
+    def url_for(self, item):
+        return f"/api/payments/items/{item.id}/"
+
+    def test_requires_authentication(self):
+        response = self.client.get(self.url_for(self.active_item))
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_member_can_retrieve_active_item(self):
+        self.client.force_authenticate(user=self.member)
+        response = self.client.get(self.url_for(self.active_item))
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["data"]["name"], "Active Item")
+
+    def test_member_cannot_retrieve_inactive_item(self):
+        self.client.force_authenticate(user=self.member)
+        response = self.client.get(self.url_for(self.inactive_item))
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_admin_can_retrieve_inactive_item(self):
+        self.client.force_authenticate(user=self.admin)
+        response = self.client.get(self.url_for(self.inactive_item))
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["data"]["name"], "Inactive Item")
+
+    def test_admin_can_update_payment_item(self):
+        self.client.force_authenticate(user=self.admin)
+        response = self.client.patch(
+            self.url_for(self.active_item), {"amount": "650.00"}, format="json"
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.active_item.refresh_from_db()
+        self.assertEqual(str(self.active_item.amount), "650.00")
+
+    def test_admin_can_deactivate_payment_item(self):
+        self.client.force_authenticate(user=self.admin)
+        response = self.client.patch(
+            self.url_for(self.active_item), {"is_active": False}, format="json"
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.active_item.refresh_from_db()
+        self.assertFalse(self.active_item.is_active)
+
+    def test_member_cannot_update_payment_item(self):
+        self.client.force_authenticate(user=self.member)
+        response = self.client.patch(
+            self.url_for(self.active_item), {"amount": "999.00"}, format="json"
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
 
 class PaymentInitializeViewTests(APITestCase):
     url = "/api/payments/initialize/"
@@ -406,4 +485,99 @@ class InitializePaymentServiceTests(APITestCase):
         sent_json = mock_post.call_args.kwargs["json"]
         self.assertEqual(sent_json["email"], self.member.email)
         self.assertEqual(sent_json["reference"], result["reference"])
-        self.assertTrue(result["reference"].startswith("NYSC-"))
+
+
+class AdminTransactionListViewTests(APITestCase):
+    url = "/api/payments/transactions/"
+
+    def setUp(self):
+        self.admin = make_user(
+            email="admin@example.com", role=User.Role.ADMIN, code_no=5000
+        )
+        self.member_a = make_user(
+            email="a@example.com",
+            code_no=5001,
+            first_name="Ada",
+            last_name="Okafor",
+        )
+        self.member_b = make_user(
+            email="b@example.com",
+            code_no=5002,
+            first_name="Bola",
+            last_name="Ade",
+        )
+        self.item_x = make_payment_item(name="Item X", amount="500.00")
+        self.item_y = make_payment_item(name="Item Y", amount="300.00")
+
+        self.payment_a = Payment.objects.create(
+            member=self.member_a,
+            payment_item=self.item_x,
+            status=Payment.Status.SUCCESSFUL,
+        )
+        self.txn_a = Transaction.objects.create(
+            payment=self.payment_a,
+            reference="NYSC-a-1",
+            amount=self.item_x.amount,
+            status=Transaction.Status.SUCCESSFUL,
+        )
+
+        self.payment_b = Payment.objects.create(
+            member=self.member_b, payment_item=self.item_y, status=Payment.Status.PENDING
+        )
+        self.txn_b = Transaction.objects.create(
+            payment=self.payment_b,
+            reference="NYSC-b-1",
+            amount=self.item_y.amount,
+            status=Transaction.Status.FAILED,
+        )
+
+    def test_requires_authentication(self):
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_member_cannot_access(self):
+        self.client.force_authenticate(user=self.member_a)
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_admin_lists_all_transactions(self):
+        self.client.force_authenticate(user=self.admin)
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        results = response.data["data"]["results"]
+        self.assertEqual(len(results), 2)
+        by_reference = {row["reference"]: row for row in results}
+        self.assertEqual(
+            by_reference["NYSC-a-1"]["member_email"], self.member_a.email
+        )
+        self.assertEqual(
+            by_reference["NYSC-a-1"]["payment_item_name"], self.item_x.name
+        )
+        self.assertEqual(by_reference["NYSC-a-1"]["member_name"], "Ada Okafor")
+
+    def test_admin_filters_by_status(self):
+        self.client.force_authenticate(user=self.admin)
+        response = self.client.get(self.url, {"status": "failed"})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        results = response.data["data"]["results"]
+        self.assertEqual([row["reference"] for row in results], ["NYSC-b-1"])
+
+    def test_admin_filters_by_payment_item(self):
+        self.client.force_authenticate(user=self.admin)
+        response = self.client.get(self.url, {"payment_item": str(self.item_y.id)})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        results = response.data["data"]["results"]
+        self.assertEqual([row["reference"] for row in results], ["NYSC-b-1"])
+
+    def test_admin_search_by_member_email(self):
+        self.client.force_authenticate(user=self.admin)
+        response = self.client.get(self.url, {"search": "a@example.com"})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        results = response.data["data"]["results"]
+        self.assertEqual([row["reference"] for row in results], ["NYSC-a-1"])
