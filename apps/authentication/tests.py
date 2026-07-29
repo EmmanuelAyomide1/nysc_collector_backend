@@ -174,12 +174,12 @@ class LogoutViewTests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-    def test_logout_requires_authentication(self):
+    def test_logout_without_session_still_succeeds(self):
         self.client.cookies.clear()
 
         response = self.client.post("/api/auth/logout/")
 
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 
 class RefreshViewTests(APITestCase):

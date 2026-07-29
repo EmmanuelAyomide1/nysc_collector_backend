@@ -1,6 +1,9 @@
 from django.contrib.auth import get_user_model
+from django.utils.decorators import method_decorator
 
-from rest_framework import viewsets
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
+from rest_framework import filters, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
@@ -11,11 +14,67 @@ from apps.members.serializers import MemberSerializer, MemberUpdateSerializer
 User = get_user_model()
 
 
+@method_decorator(
+    name="list",
+    decorator=swagger_auto_schema(
+        tags=["Members"],
+        manual_parameters=[
+            openapi.Parameter(
+                "search",
+                openapi.IN_QUERY,
+                description="Search by first name, last name, or email.",
+                type=openapi.TYPE_STRING,
+            ),
+            openapi.Parameter(
+                "batch",
+                openapi.IN_QUERY,
+                description="Filter by batch (e.g. A1, A2, B1, B2, C).",
+                type=openapi.TYPE_STRING,
+            ),
+            openapi.Parameter(
+                "role",
+                openapi.IN_QUERY,
+                description="Filter by role (member or admin).",
+                type=openapi.TYPE_STRING,
+            ),
+            openapi.Parameter(
+                "is_active",
+                openapi.IN_QUERY,
+                description="Filter by active status (true or false).",
+                type=openapi.TYPE_BOOLEAN,
+            ),
+        ],
+    ),
+)
 class MemberViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = MemberSerializer
     permission_classes = [IsAdministrator]
     http_method_names = ["get", "put", "patch", "post"]
+    filter_backends = [filters.SearchFilter]
+    search_fields = ["first_name", "last_name", "email"]
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+
+        if self.action != "list":
+            return queryset
+
+        params = self.request.query_params
+
+        batch = params.get("batch")
+        if batch:
+            queryset = queryset.filter(batch=batch)
+
+        role = params.get("role")
+        if role:
+            queryset = queryset.filter(role=role)
+
+        is_active = params.get("is_active")
+        if is_active is not None:
+            queryset = queryset.filter(is_active=is_active.lower() in ("true", "1"))
+
+        return queryset
 
     def get_permissions(self):
         if self.action in ["list", "update", "partial_update"]:

@@ -61,3 +61,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin, BaseModel):
 
     def __str__(self):
         return self.email
+
+    @property
+    def state_code(self):
+        return f"OY/{self.batch}/{self.code_no}"

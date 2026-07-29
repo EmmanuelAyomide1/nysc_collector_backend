@@ -69,7 +69,7 @@ class ExceptionHandlerTests(APITestCase):
         self.assertIn("message", response.data)
 
     def test_authentication_error_wrapped_in_envelope(self):
-        response = self.client.get("/api/auth/users/me/")
+        response = self.client.get("/api/users/me/")
 
         self.assertEqual(response.status_code, 401)
         self.assertEqual(
