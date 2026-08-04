@@ -4,6 +4,8 @@ from apps.payments.models import Payment, PaymentItem, Transaction
 
 
 class PaymentItemSerializer(serializers.ModelSerializer):
+    has_paid = serializers.SerializerMethodField()
+
     class Meta:
         model = PaymentItem
         fields = [
@@ -16,8 +18,17 @@ class PaymentItemSerializer(serializers.ModelSerializer):
             "created_by",
             "created_at",
             "updated_at",
+            "has_paid",
         ]
-        read_only_fields = ["id", "created_by", "created_at", "updated_at"]
+        read_only_fields = ["id", "created_by", "created_at", "updated_at", "has_paid"]
+
+    def get_has_paid(self, obj):
+        user = self.context.get("request").user
+        if user.is_authenticated:
+            return Payment.objects.filter(
+                member=user, payment_item=obj, status=Payment.Status.SUCCESSFUL
+            ).exists()
+        return False
 
 
 class PaymentInitializeSerializer(serializers.Serializer):
