@@ -16,16 +16,19 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     "https://nysc-ibn2.vercel.app",
     "https://www.nysc-ibn2.vercel.app",
+    "https://nysc-collector-frontend.owoeyeemmanuel206.workers.dev",
 ]
 
 CORS_ORIGIN_WHITELIST = (
     "https://nysc-ibn2.vercel.app",
     "https://www.nysc-ibn2.vercel.app",
+    "https://nysc-collector-frontend.owoeyeemmanuel206.workers.dev",
 )
 
 CSRF_TRUSTED_ORIGINS = [
     "https://nysc-ibn2.vercel.app",
     "https://www.nysc-ibn2.vercel.app",
+    "https://nysc-collector-frontend.owoeyeemmanuel206.workers.dev",
 ]
 
 
