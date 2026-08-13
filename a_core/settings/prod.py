@@ -7,6 +7,7 @@ ALLOWED_HOSTS = [
     ".onrender.com",
     "nysc-ibn2.vercel.app",
     "www.nysc-ibn2.vercel.app",
+    "nysccollectorbackend.pxxlspace.cv"
 ]
 
 
