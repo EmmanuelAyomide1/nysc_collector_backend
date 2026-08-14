@@ -5,6 +5,7 @@ DEBUG = config("DEBUG", cast=bool)
 ALLOWED_HOSTS = [
     "render.com",
     ".onrender.com",
+    ".vercel.app",
     "nysc-ibn2.vercel.app",
     "www.nysc-ibn2.vercel.app",
 ]
