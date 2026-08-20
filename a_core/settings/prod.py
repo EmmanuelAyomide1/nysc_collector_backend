@@ -8,6 +8,7 @@ ALLOWED_HOSTS = [
     ".vercel.app",
     "nysc-ibn2.vercel.app",
     "www.nysc-ibn2.vercel.app",
+    "nysccollectorbackend.pxxlspace.cv"
 ]
 
 
