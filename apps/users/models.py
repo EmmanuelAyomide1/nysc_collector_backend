@@ -64,4 +64,6 @@ class CustomUser(AbstractBaseUser, PermissionsMixin, BaseModel):
 
     @property
     def state_code(self):
-        return f"OY/{self.batch}/{self.code_no}"
+        from .constants import batch_resolution
+
+        return f"OY/{batch_resolution[self.batch]}/{str(self.code_no).zfill(4)}"
