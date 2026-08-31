@@ -4,15 +4,18 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
+from apps.members.models import Batch
+
 User = get_user_model()
 
 
 class MemberTestsBase(APITestCase):
     def setUp(self):
+        self.batch, _ = Batch.objects.get_or_create(year=2026, name="A1")
         self.member = User.objects.create_user(
             email="member@example.com",
             password="S0me-Str0ng-Pass!",
-            batch="A1",
+            batch=self.batch,
             code_no=1,
             first_name="Ada",
             last_name="Okafor",
@@ -20,7 +23,7 @@ class MemberTestsBase(APITestCase):
         self.other_member = User.objects.create_user(
             email="other@example.com",
             password="S0me-Str0ng-Pass!",
-            batch="A1",
+            batch=self.batch,
             code_no=2,
             first_name="Bola",
             last_name="Ade",
@@ -28,7 +31,7 @@ class MemberTestsBase(APITestCase):
         self.admin = User.objects.create_user(
             email="admin@example.com",
             password="S0me-Str0ng-Pass!",
-            batch="A1",
+            batch=self.batch,
             code_no=3,
             first_name="Chidi",
             last_name="Eze",
@@ -110,7 +113,7 @@ class MemberListViewTests(MemberTestsBase):
         User.objects.create_user(
             email="batchb@example.com",
             password="S0me-Str0ng-Pass!",
-            batch="B1",
+            batch=Batch.objects.get_or_create(year=2026, name="B1")[0],
             code_no=4,
             first_name="Dara",
             last_name="Obi",

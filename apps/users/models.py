@@ -3,6 +3,7 @@ from django.contrib.auth.models import PermissionsMixin
 from django.db import models
 
 from apps.common.models import BaseModel
+from apps.members.models import Batch
 
 
 class CustomUserManager(BaseUserManager):
@@ -34,15 +35,12 @@ class CustomUser(AbstractBaseUser, PermissionsMixin, BaseModel):
         MEMBER = "member", "Member"
         ADMIN = "admin", "Administrator"
 
-    class Batch(models.TextChoices):
-        BATCH_A1 = "A1", "Batch A1"
-        BATCH_A2 = "A2", "Batch A2"
-        BATCH_B1 = "B1", "Batch B1"
-        BATCH_B2 = "B2", "Batch B2"
-        BATCH_C = "C", "Batch C"
-
     email = models.EmailField(unique=True)
-    batch = models.CharField(max_length=10, choices=Batch.choices)
+    batch = models.ForeignKey(
+        Batch,
+        on_delete=models.PROTECT,
+        related_name="members",
+    )
     code_no = models.SmallIntegerField()
     first_name = models.CharField(max_length=150)
     last_name = models.CharField(max_length=150)
@@ -64,6 +62,4 @@ class CustomUser(AbstractBaseUser, PermissionsMixin, BaseModel):
 
     @property
     def state_code(self):
-        from .constants import batch_resolution
-
-        return f"OY/{batch_resolution[self.batch]}/{str(self.code_no).zfill(4)}"
+        return f"OY/{self.batch.code}/{str(self.code_no).zfill(4)}"
