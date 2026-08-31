@@ -5,13 +5,32 @@ from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import filters, viewsets
 from rest_framework.decorators import action
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 
 from apps.common.permissions import IsAdminOrSelf, IsAdministrator
-from apps.members.serializers import MemberSerializer, MemberUpdateSerializer
+from apps.members.models import Batch
+from apps.members.serializers import (
+    BatchSerializer,
+    MemberSerializer,
+    MemberUpdateSerializer,
+)
 
 User = get_user_model()
+
+
+@method_decorator(
+    name="get",
+    decorator=swagger_auto_schema(tags=["Members"]),
+)
+class ActiveBatchListView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        batches = Batch.objects.filter(is_active=True)
+        return Response({"success": True, "data": BatchSerializer(batches, many=True).data})
 
 
 @method_decorator(
@@ -47,7 +66,7 @@ User = get_user_model()
     ),
 )
 class MemberViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
+    queryset = User.objects.select_related("batch")
     serializer_class = MemberSerializer
     permission_classes = [IsAdministrator]
     http_method_names = ["get", "put", "patch", "post"]
@@ -64,7 +83,7 @@ class MemberViewSet(viewsets.ModelViewSet):
 
         batch = params.get("batch")
         if batch:
-            queryset = queryset.filter(batch=batch)
+            queryset = queryset.filter(batch__name=batch)
 
         role = params.get("role")
         if role:

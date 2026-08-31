@@ -2,6 +2,8 @@ from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.test import APITestCase
 
+from apps.members.models import Batch
+
 User = get_user_model()
 
 
@@ -9,10 +11,11 @@ class CurrentUserViewTests(APITestCase):
     url = "/api/users/me/"
 
     def setUp(self):
+        self.batch, _ = Batch.objects.get_or_create(year=2026, name="A1")
         self.user = User.objects.create_user(
             email="corper@example.com",
             password="S0me-Str0ng-Pass!",
-            batch="A1",
+            batch=self.batch,
             code_no=1234,
             first_name="Ada",
             last_name="Okafor",
