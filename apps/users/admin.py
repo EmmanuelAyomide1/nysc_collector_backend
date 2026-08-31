@@ -8,7 +8,7 @@ from apps.users.models import CustomUser
 class CustomUserAdmin(UserAdmin):
     ordering = ["email"]
     list_display = ["email", "batch", "code_no", "first_name", "last_name", "role", "is_active", "is_staff"]
-    search_fields = ["email", "batch", "code_no", "first_name", "last_name"]
+    search_fields = ["email", "batch__name", "code_no", "first_name", "last_name"]
     fieldsets = (
         (None, {"fields": ("email", "password")}),
         ("Personal info", {"fields": ("first_name", "last_name", "phone_number", "batch", "code_no")}),

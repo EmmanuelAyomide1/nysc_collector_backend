@@ -6,14 +6,18 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from apps.authentication.authentication import CookieJWTAuthentication
 from apps.common.constants import ACCESS_TOKEN_COOKIE_NAME, REFRESH_TOKEN_COOKIE_NAME
+from apps.members.models import Batch
 
 User = get_user_model()
 
 
 def make_user(email="corper@example.com", **overrides):
+    batch_name = overrides.pop("batch", "A1")
+    batch, _ = Batch.objects.get_or_create(year=2099, name=batch_name)
+
     fields = {
         "password": "S0me-Str0ng-Pass!",
-        "batch": "A1",
+        "batch": batch,
         "code_no": 1234,
         "first_name": "Ada",
         "last_name": "Okafor",
@@ -25,11 +29,14 @@ def make_user(email="corper@example.com", **overrides):
 class RegisterViewTests(APITestCase):
     url = "/api/auth/register/"
 
+    def setUp(self):
+        self.batch = Batch.objects.create(year=2099, name="A1", is_active=True)
+
     def valid_payload(self, **overrides):
         payload = {
             "email": "corper@example.com",
             "password": "S0me-Str0ng-Pass!",
-            "batch": "A1",
+            "batch": str(self.batch.id),
             "code_no": 1234,
             "first_name": "Ada",
             "last_name": "Okafor",

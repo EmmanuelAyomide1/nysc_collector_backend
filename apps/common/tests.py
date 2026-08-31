@@ -3,6 +3,7 @@ from django.contrib.auth.models import AnonymousUser
 from rest_framework.test import APIRequestFactory, APITestCase
 
 from apps.common.permissions import IsAdministrator, IsMember
+from apps.members.models import Batch
 
 User = get_user_model()
 
@@ -10,10 +11,11 @@ User = get_user_model()
 class RolePermissionTests(APITestCase):
     def setUp(self):
         self.factory = APIRequestFactory()
+        self.batch, _ = Batch.objects.get_or_create(year=2026, name="A1")
         self.member = User.objects.create_user(
             email="member@example.com",
             password="x",
-            batch="A1",
+            batch=self.batch,
             code_no=1,
             first_name="M",
             last_name="M",
@@ -21,7 +23,7 @@ class RolePermissionTests(APITestCase):
         self.admin = User.objects.create_user(
             email="admin@example.com",
             password="x",
-            batch="A1",
+            batch=self.batch,
             code_no=2,
             first_name="A",
             last_name="A",

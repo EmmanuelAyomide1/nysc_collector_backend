@@ -3,6 +3,7 @@ from django.contrib.auth.password_validation import validate_password
 
 from rest_framework import serializers
 
+from apps.members.models import Batch
 from apps.users.models import CustomUser
 
 from .utils import validate_phone_number
@@ -12,6 +13,9 @@ class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, validators=[validate_password])
     phone_number = serializers.CharField(validators=[validate_phone_number])
     code_no = serializers.IntegerField(min_value=1, max_value=9999)
+    batch = serializers.PrimaryKeyRelatedField(
+        queryset=Batch.objects.filter(is_active=True)
+    )
 
     class Meta:
         model = CustomUser

@@ -1,7 +1,6 @@
 import io
 
 from apps.payments.models import Payment
-from apps.users.models import CustomUser
 
 
 def get_members_who_paid(payment_item):
@@ -9,22 +8,19 @@ def get_members_who_paid(payment_item):
         Payment.objects.filter(
             payment_item=payment_item, status=Payment.Status.SUCCESSFUL
         )
-        .select_related("member")
+        .select_related("member", "member__batch")
         .order_by("member__last_name", "member__first_name")
     )
 
 
 def group_payments_by_batch(payments):
-    """Group payments by member batch, in Batch-enum order, dropping empty batches."""
+    """Group payments by member batch, oldest batch first, dropping empty batches."""
     by_batch = {}
     for payment in payments:
         by_batch.setdefault(payment.member.batch, []).append(payment)
 
-    return [
-        (label, by_batch[value])
-        for value, label in CustomUser.Batch.choices
-        if value in by_batch
-    ]
+    batches = sorted(by_batch, key=lambda batch: (batch.year, batch.name))
+    return [(str(batch), by_batch[batch]) for batch in batches]
 
 
 def export_payment_item_report_pdf(payment_item):

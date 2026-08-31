@@ -10,6 +10,7 @@ from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.test import APITestCase
 
+from apps.members.models import Batch
 from apps.payments.models import Payment, PaymentItem, Transaction
 from apps.payments.services import (
     PaystackError,
@@ -22,9 +23,12 @@ User = get_user_model()
 
 
 def make_user(email="member@example.com", role=User.Role.MEMBER, **overrides):
+    batch_name = overrides.pop("batch", "A1")
+    batch, _ = Batch.objects.get_or_create(year=2026, name=batch_name)
+
     fields = {
         "password": "S0me-Str0ng-Pass!",
-        "batch": "A1",
+        "batch": batch,
         "code_no": 1000,
         "first_name": "Chidi",
         "last_name": "Payer",
