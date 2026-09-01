@@ -22,6 +22,12 @@ class CustomUserManager(BaseUserManager):
         extra_fields.setdefault("is_superuser", True)
         extra_fields.setdefault("role", CustomUser.Role.ADMIN)
 
+        batch = extra_fields.get("batch")
+
+        if batch and not isinstance(batch, Batch):
+            batch = Batch.objects.get(pk=batch)
+            extra_fields["batch"] = batch
+
         if extra_fields.get("is_staff") is not True:
             raise ValueError("Superuser must have is_staff=True.")
         if extra_fields.get("is_superuser") is not True:
