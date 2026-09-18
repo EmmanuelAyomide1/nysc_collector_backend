@@ -44,7 +44,7 @@ class LoginSerializer(serializers.Serializer):
     def validate(self, attrs):
         user = authenticate(
             request=self.context.get("request"),
-            email=attrs["email"],
+            email=attrs["email"].strip().lower(),
             password=attrs["password"],
         )
         if user is None:
