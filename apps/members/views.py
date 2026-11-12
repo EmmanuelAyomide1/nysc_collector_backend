@@ -47,7 +47,7 @@ class ActiveBatchListView(APIView):
             openapi.Parameter(
                 "batch",
                 openapi.IN_QUERY,
-                description="Filter by batch (e.g. A1, A2, B1, B2, C).",
+                description="Filter by batch (e.g. A1, A2, B1, B2, C, C1, C2).",
                 type=openapi.TYPE_STRING,
             ),
             openapi.Parameter(

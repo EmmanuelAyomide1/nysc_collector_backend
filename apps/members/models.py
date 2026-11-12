@@ -10,6 +10,8 @@ class Batch(BaseModel):
         B1 = "B1", "Batch B1"
         B2 = "B2", "Batch B2"
         C = "C", "Batch C"
+        C1 = "C1", "Batch C1"
+        C2 = "C2", "Batch C2"
 
     year = models.PositiveSmallIntegerField()
     name = models.CharField(max_length=2, choices=BatchName.choices)
@@ -25,6 +27,8 @@ class Batch(BaseModel):
             self.BatchName.B1: "B",
             self.BatchName.B2: "B",
             self.BatchName.C: "C",
+            self.BatchName.C1: "C",
+            self.BatchName.C2: "C",
         }
 
         return f"{year}{batch_resolution[self.name]}"
