@@ -9,6 +9,13 @@ from apps.members.models import Batch
 User = get_user_model()
 
 
+class BatchCodeTests(APITestCase):
+    def test_legacy_c_and_split_c_batches_share_state_code_letter(self):
+        self.assertEqual(Batch(year=2025, name="C").code, "25C")
+        self.assertEqual(Batch(year=2026, name="C1").code, "26C")
+        self.assertEqual(Batch(year=2026, name="C2").code, "26C")
+
+
 class MemberTestsBase(APITestCase):
     def setUp(self):
         self.batch, _ = Batch.objects.get_or_create(year=2026, name="A1")
@@ -126,6 +133,24 @@ class MemberListViewTests(MemberTestsBase):
         results = response.data["data"]["results"]
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0]["email"], "batchb@example.com")
+
+    def test_admin_can_filter_by_split_c_batch(self):
+        User.objects.create_user(
+            email="batchc1@example.com",
+            password="S0me-Str0ng-Pass!",
+            batch=Batch.objects.get_or_create(year=2026, name="C1")[0],
+            code_no=5,
+            first_name="Efe",
+            last_name="Ojo",
+        )
+        self.login(self.admin.email)
+
+        response = self.client.get(self.list_url, {"batch": "C1"})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        results = response.data["data"]["results"]
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0]["email"], "batchc1@example.com")
 
 
 class MemberDetailViewTests(MemberTestsBase):
