@@ -7,6 +7,7 @@ from unittest import mock
 import requests
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.test import override_settings
 from rest_framework import status
 from rest_framework.test import APITestCase
 
@@ -255,6 +256,34 @@ class PaymentInitializeViewTests(APITestCase):
 
         sent_amount = mock_post.call_args.kwargs["json"]["amount"]
         self.assertEqual(sent_amount, 50000)
+
+    def _initialize_and_get_payload(self, mock_post):
+        mock_post.return_value = mock_response(
+            ok=True,
+            json_data={
+                "status": True,
+                "data": {"authorization_url": "https://x", "access_code": "abc"},
+            },
+        )
+        self.client.force_authenticate(user=self.member)
+        self.client.post(self.url, {"payment_item": str(self.item.id)}, format="json")
+        return mock_post.call_args.kwargs["json"]
+
+    @override_settings(PAYSTACK_SUBACCOUNT_CODE="ACCT_test")
+    @mock.patch("apps.payments.services.requests.post")
+    def test_initialize_routes_to_configured_subaccount(self, mock_post):
+        payload = self._initialize_and_get_payload(mock_post)
+
+        self.assertEqual(payload["subaccount"], "ACCT_test")
+        self.assertEqual(payload["bearer"], "subaccount")
+
+    @override_settings(PAYSTACK_SUBACCOUNT_CODE="")
+    @mock.patch("apps.payments.services.requests.post")
+    def test_initialize_without_subaccount_omits_split(self, mock_post):
+        payload = self._initialize_and_get_payload(mock_post)
+
+        self.assertNotIn("subaccount", payload)
+        self.assertNotIn("bearer", payload)
 
     @mock.patch("apps.payments.services.requests.post")
     def test_paystack_rejection_marks_payment_failed(self, mock_post):

@@ -43,6 +43,14 @@ def _headers():
     }
 
 
+def _split_params():
+    """Send funds to the configured subaccount, which also bears the fee."""
+    subaccount = getattr(settings, "PAYSTACK_SUBACCOUNT_CODE", "")
+    if not subaccount:
+        return {}
+    return {"subaccount": subaccount, "bearer": "subaccount"}
+
+
 def initialize_payment(member, payment_item: "PaymentItem"):
     payment = Payment.objects.create(member=member, payment_item=payment_item)
     reference = f"NYSC-{uuid.uuid4().hex}"
@@ -56,6 +64,7 @@ def initialize_payment(member, payment_item: "PaymentItem"):
                 "amount": int(payment_item.amount * 100),
                 "reference": reference,
                 "metadata": {"payment_id": str(payment.id)},
+                **_split_params(),
             },
             timeout=15,
         )
