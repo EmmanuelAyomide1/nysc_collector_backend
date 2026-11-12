@@ -7,7 +7,7 @@ ALLOWED_HOSTS = [
     ".onrender.com",
     "nysc-ibn2.vercel.app",
     "www.nysc-ibn2.vercel.app",
-    "nysccollectorbackend.pxxlspace.cv"
+    "nysccollectorbackend.pxxlspace.cv",
 ]
 
 
@@ -54,3 +54,4 @@ SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 # PAYSTACK CONFIG
 PAYSTACK_SECRET_KEY = config("PAYSTACK_LIVE_SECRET_KEY")
 PAYSTACK_PUBLIC_KEY = config("PAYSTACK_LIVE_PUBLIC_KEY")
+PAYSTACK_SUBACCOUNT_CODE = config("PAYSTACK_LIVE_SUBACCOUNT_CODE", default="")
